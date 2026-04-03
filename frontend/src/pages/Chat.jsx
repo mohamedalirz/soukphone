@@ -26,7 +26,7 @@ const Chat = () => {
       const user = JSON.parse(userStr);
       setCurrentUser(user);
     } else {
-      navigate("/auth");
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -56,7 +56,7 @@ const Chat = () => {
     const roomId = [currentUser._id, otherUser._id].sort().join("-");
     
     // Connect to Socket.IO
-    const newSocket = io("http://localhost:5000", {
+    const newSocket = io("https://soukphone-api.onrender.com", {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
