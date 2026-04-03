@@ -1,7 +1,6 @@
 // components/UserBadge.jsx
 import React from "react";
-import { Shield, Star, CheckCircle, User } from "lucide-react";
-
+import { Shield, CheckCircle, User } from "lucide-react";
 const UserBadge = ({ badge, showLabel = true, size = "sm" }) => {
   const badges = {
     verified: {
