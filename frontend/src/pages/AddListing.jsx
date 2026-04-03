@@ -36,7 +36,7 @@ const AddListing = () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          navigate("/auth");
+          navigate("/login");
           return;
         }
 
@@ -61,7 +61,7 @@ const AddListing = () => {
       } catch (error) {
         console.error("Error fetching user data:", error);
         if (error.response?.status === 401) {
-          navigate("/auth");
+          navigate("/login");
         }
         setLoadingLimit(false);
       }
@@ -103,7 +103,7 @@ const AddListing = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to add a listing!");
-      navigate("/auth");
+      navigate("/login");
       return;
     }
     
@@ -152,7 +152,7 @@ const AddListing = () => {
       if (err.response?.status === 401) {
         alert("Session expired. Please login again.");
         localStorage.removeItem("token");
-        navigate("/auth");
+        navigate("/login");
       } else {
         const errorMsg = err.response?.data?.msg || err.message || "Failed to add listing";
         setError(errorMsg);
