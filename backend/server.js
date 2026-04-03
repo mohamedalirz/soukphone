@@ -27,27 +27,30 @@ const server = http.createServer(app);
 // Allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://soukphonetn.vercel.app',
+  'https://soukphone.vercel.app',
   'https://soukphone-git-main.vercel.app',
-  'https://soukphonetn.vercel.app',
-  process.env.CLIENT_URL
-].filter(Boolean);
+  'https://soukphone.vercel.app'
+];
 
 // Configure CORS
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       console.log('Origin not allowed:', origin);
-      callback(null, true);
+      callback(null, true); // Allow anyway for now
     }
   },
   credentials: true
 }));
 
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // Socket.IO configuration
 const io = new Server(server, {
@@ -63,13 +66,12 @@ const io = new Server(server, {
 
 app.set('io', io);
 
-// Health check endpoint (required for Render)
+// Health check endpoints
 app.get("/", (req, res) => {
   res.json({ 
     status: "ok", 
     message: "SoukPhone API is running",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -152,21 +154,25 @@ app.use((req, res) => {
 // Database connection
 const PORT = process.env.PORT || 5000;
 
+// Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ DB Connected");
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🔥 Server running on port ${PORT}`);
       console.log(`🔌 Socket.IO server running on port ${PORT}`);
     });
   })
   .catch(err => {
     console.error("❌ DB Connection Error:", err.message);
-    process.exit(1);
+    // Don't exit, just log error
+    console.log("Starting server without DB connection...");
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`🔥 Server running on port ${PORT} (without DB)`);
+    });
   });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
-  server.close(() => process.exit(1));
 });
