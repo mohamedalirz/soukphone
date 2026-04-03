@@ -103,7 +103,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
