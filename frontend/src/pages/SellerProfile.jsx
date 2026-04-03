@@ -34,11 +34,11 @@ const SellerProfile = () => {
       setLoading(true);
       
       // Fetch seller info
-      const sellerRes = await axios.get(`http://localhost:5000/api/auth/user/${id}`);
+      const sellerRes = await axios.get(`https://soukphone-api.onrender.com/api/auth/user/${id}`);
       setSeller(sellerRes.data);
       
       // Fetch seller's listings
-      const listingsRes = await axios.get(`http://localhost:5000/api/listings/user/${id}`);
+      const listingsRes = await axios.get(`https://soukphone-api.onrender.com/api/listings/user/${id}`);
       setListings(listingsRes.data);
       
     } catch (err) {
