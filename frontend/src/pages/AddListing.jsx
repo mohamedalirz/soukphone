@@ -64,7 +64,7 @@ const AddListing = () => {
     };
     
     fetchUserData();
-  }, [navigate]);
+  }, [navigate, planLimits]);
 
   // Handle file selection
   const handleFiles = (files) => {
