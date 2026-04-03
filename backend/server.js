@@ -26,9 +26,11 @@ const server = http.createServer(app);
 // Allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:5000',
   'https://soukphone.vercel.app',
   'https://soukphone-git-main.vercel.app',
-  'https://soukphone.vercel.app'
+  'https://soukphone.vercel.app',
+  'https://soukphone-api.onrender.com'
 ];
 
 // Configure CORS
@@ -43,7 +45,9 @@ app.use(cors({
       callback(null, true); // Allow anyway for now
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
@@ -78,13 +82,24 @@ app.get("/api/health", (req, res) => {
   res.json({ 
     status: "ok", 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV
   });
 });
 
 // Test route
 app.get("/api/test", (req, res) => {
-  res.json({ message: "Server is running!", timestamp: new Date().toISOString() });
+  res.json({ 
+    message: "Server is running!", 
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      auth: "/api/auth",
+      listings: "/api/listings",
+      sponsors: "/api/sponsors",
+      plans: "/api/plans",
+      admin: "/api/admin"
+    }
+  });
 });
 
 // Rate limiting (only in production)
