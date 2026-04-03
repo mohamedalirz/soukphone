@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
+// Get API URL from environment variable
+const API_URL = process.env.REACT_APP_API_URL || "https://soukphone-api.onrender.com/api";
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -54,30 +57,30 @@ const AdminDashboard = () => {
 
   // Fetch plan requests
   const fetchPlanRequests = async () => {
-  setLoadingRequests(true);
-  try {
-    const token = getToken();
-    console.log("Fetching plan requests...");
-    
-    const response = await axios.get("http://localhost:5000/api/admin/plan-requests", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    console.log("Plan requests response:", response.data);
-    
-    if (response.data.success) {
-      setPlanRequests(response.data.requests || []);
-    } else {
+    setLoadingRequests(true);
+    try {
+      const token = getToken();
+      console.log("Fetching plan requests...");
+      
+      const response = await axios.get(`${API_URL}/admin/plan-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log("Plan requests response:", response.data);
+      
+      if (response.data.success) {
+        setPlanRequests(response.data.requests || []);
+      } else {
+        setPlanRequests([]);
+      }
+    } catch (error) {
+      console.error("Error fetching plan requests:", error);
+      console.error("Error response:", error.response?.data);
       setPlanRequests([]);
+    } finally {
+      setLoadingRequests(false);
     }
-  } catch (error) {
-    console.error("Error fetching plan requests:", error);
-    console.error("Error response:", error.response?.data);
-    setPlanRequests([]);
-  } finally {
-    setLoadingRequests(false);
-  }
-};
+  };
 
   useEffect(() => {
     const admin = localStorage.getItem("admin");
@@ -104,22 +107,22 @@ const AdminDashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
       
       console.log("Fetching stats...");
-      const statsRes = await axios.get("http://localhost:5000/api/admin/stats", { headers });
+      const statsRes = await axios.get(`${API_URL}/admin/stats`, { headers });
       console.log("Stats response:", statsRes.data);
       setStats(statsRes.data);
       
       console.log("Fetching users...");
-      const usersRes = await axios.get("http://localhost:5000/api/admin/users", { headers });
+      const usersRes = await axios.get(`${API_URL}/admin/users`, { headers });
       console.log("Users response:", usersRes.data);
       setUsers(usersRes.data.users || []);
       
       console.log("Fetching listings...");
-      const listingsRes = await axios.get("http://localhost:5000/api/admin/listings", { headers });
+      const listingsRes = await axios.get(`${API_URL}/admin/listings`, { headers });
       console.log("Listings response:", listingsRes.data);
       setListings(listingsRes.data.listings || []);
       
       console.log("Fetching sponsors...");
-      const sponsorsRes = await axios.get("http://localhost:5000/api/admin/sponsors", { headers });
+      const sponsorsRes = await axios.get(`${API_URL}/admin/sponsors`, { headers });
       console.log("Sponsors response:", sponsorsRes.data);
       setSponsors(sponsorsRes.data.sponsors || []);
       
@@ -142,51 +145,51 @@ const AdminDashboard = () => {
   };
 
   const handleApproveRequest = async (requestId) => {
-  if (window.confirm("Approve this plan upgrade request?")) {
-    try {
-      const token = getToken();
-      const response = await axios.post(
-        `http://localhost:5000/api/admin/plan-requests/${requestId}/approve`,
-        { adminNote },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      if (response.data.success) {
-        alert("Request approved successfully!");
-        fetchPlanRequests();
-        fetchData(); // Refresh user data
-        setSelectedRequest(null);
-        setAdminNote("");
+    if (window.confirm("Approve this plan upgrade request?")) {
+      try {
+        const token = getToken();
+        const response = await axios.post(
+          `${API_URL}/admin/plan-requests/${requestId}/approve`,
+          { adminNote },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (response.data.success) {
+          alert("Request approved successfully!");
+          fetchPlanRequests();
+          fetchData();
+          setSelectedRequest(null);
+          setAdminNote("");
+        }
+      } catch (error) {
+        console.error("Error approving request:", error);
+        alert(error.response?.data?.message || "Failed to approve request");
       }
-    } catch (error) {
-      console.error("Error approving request:", error);
-      alert(error.response?.data?.message || "Failed to approve request");
     }
-  }
-};
+  };
 
   const handleDeclineRequest = async (requestId) => {
-  if (window.confirm("Decline this plan upgrade request?")) {
-    try {
-      const token = getToken();
-      const response = await axios.post(
-        `http://localhost:5000/api/admin/plan-requests/${requestId}/decline`,
-        { adminNote },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      if (response.data.success) {
-        alert("Request declined");
-        fetchPlanRequests();
-        setSelectedRequest(null);
-        setAdminNote("");
+    if (window.confirm("Decline this plan upgrade request?")) {
+      try {
+        const token = getToken();
+        const response = await axios.post(
+          `${API_URL}/admin/plan-requests/${requestId}/decline`,
+          { adminNote },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (response.data.success) {
+          alert("Request declined");
+          fetchPlanRequests();
+          setSelectedRequest(null);
+          setAdminNote("");
+        }
+      } catch (error) {
+        console.error("Error declining request:", error);
+        alert(error.response?.data?.message || "Failed to decline request");
       }
-    } catch (error) {
-      console.error("Error declining request:", error);
-      alert(error.response?.data?.message || "Failed to decline request");
     }
-  }
-};
+  };
 
   const handleUpdateBadge = async (userId, badge) => {
     try {
@@ -194,7 +197,7 @@ const AdminDashboard = () => {
       console.log("Updating badge with token:", token ? "Token exists" : "No token");
       
       const response = await axios.patch(
-        `http://localhost:5000/api/admin/users/${userId}/badge`,
+        `${API_URL}/admin/users/${userId}/badge`,
         { badge },
         { 
           headers: { 
@@ -223,7 +226,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/users/${userId}`, {
+        await axios.delete(`${API_URL}/admin/users/${userId}`, {
           headers: { Authorization: `Bearer ${getToken()}` }
         });
         await fetchData();
@@ -237,7 +240,7 @@ const AdminDashboard = () => {
     if (window.confirm("Are you sure you want to delete this listing? This will also delete all associated images from Cloudinary. This action cannot be undone.")) {
       setDeletingId(listingId);
       try {
-        const response = await axios.delete(`http://localhost:5000/api/admin/listings/${listingId}`, {
+        const response = await axios.delete(`${API_URL}/admin/listings/${listingId}`, {
           headers: { Authorization: `Bearer ${getToken()}` }
         });
         
@@ -259,7 +262,7 @@ const AdminDashboard = () => {
   const handleToggleFeatured = async (listingId) => {
     try {
       const response = await axios.patch(
-        `http://localhost:5000/api/admin/listings/${listingId}/featured`,
+        `${API_URL}/admin/listings/${listingId}/featured`,
         {},
         { headers: { Authorization: `Bearer ${getToken()}` } }
       );
@@ -275,7 +278,7 @@ const AdminDashboard = () => {
   const handleDeleteSponsor = async (sponsorId) => {
     if (window.confirm("Are you sure you want to delete this sponsor?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/sponsors/${sponsorId}`, {
+        await axios.delete(`${API_URL}/admin/sponsors/${sponsorId}`, {
           headers: { Authorization: `Bearer ${getToken()}` }
         });
         await fetchData();
@@ -288,7 +291,7 @@ const AdminDashboard = () => {
   const handleCreateSponsor = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/admin/sponsors", sponsorForm, {
+      await axios.post(`${API_URL}/admin/sponsors`, sponsorForm, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setShowSponsorModal(false);
@@ -313,7 +316,7 @@ const AdminDashboard = () => {
   const handleUpdateSponsor = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/admin/sponsors/${editingSponsor._id}`, sponsorForm, {
+      await axios.put(`${API_URL}/admin/sponsors/${editingSponsor._id}`, sponsorForm, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setShowSponsorModal(false);
@@ -363,6 +366,24 @@ const AdminDashboard = () => {
       });
     }
     setShowSponsorModal(true);
+  };
+
+  const fixSubscriptionDates = async () => {
+    if (window.confirm("Fix all subscription dates for premium users?")) {
+      try {
+        const token = getToken();
+        const response = await axios.post(
+          `${API_URL}/admin/fix-subscription-dates`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert(response.data.message);
+        fetchData();
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Failed to fix subscription dates");
+      }
+    }
   };
 
   const StatCard = ({ title, value, icon: Icon, color }) => (
@@ -462,6 +483,16 @@ const AdminDashboard = () => {
             </div>
           </div>
 
+          {/* Fix Subscription Button */}
+          <div className="mb-6">
+            <button
+              onClick={fixSubscriptionDates}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            >
+              Fix All Subscription Dates
+            </button>
+          </div>
+
           {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
             <div>
@@ -485,6 +516,7 @@ const AdminDashboard = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">Joined</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">Plan</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">Badge</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">Subscription</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
                     </tr>
                   </thead>
@@ -515,13 +547,7 @@ const AdminDashboard = () => {
                           </select>
                         </td>
                         <td className="px-6 py-4">
-                          <button onClick={() => handleDeleteUser(user._id)} className="text-red-500 hover:text-red-700">
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </td>
-                        <td className="px-6 py-4">
                           <div className="text-sm">
-                            <div className="capitalize">{user.plan}</div>
                             {user.subscription?.endDate && (
                               <div className="text-xs text-gray-500">
                                 Expires: {new Date(user.subscription.endDate).toLocaleDateString()}
@@ -529,33 +555,13 @@ const AdminDashboard = () => {
                             )}
                           </div>
                         </td>
+                        <td className="px-6 py-4">
+                          <button onClick={() => handleDeleteUser(user._id)} className="text-red-500 hover:text-red-700">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
-                    // Add this button in the dashboard tab
-<div className="mb-6">
-  <button
-    onClick={async () => {
-      if (window.confirm("Fix all subscription dates for premium users?")) {
-        try {
-          const token = getToken();
-          const response = await axios.post(
-            "http://localhost:5000/api/admin/fix-subscription-dates",
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          alert(response.data.message);
-          fetchData();
-        } catch (error) {
-          console.error("Error:", error);
-          alert("Failed to fix subscription dates");
-        }
-      }
-    }}
-    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-  >
-    Fix All Subscription Dates
-  </button>
-</div>
                   </tbody>
                 </table>
               </div>
