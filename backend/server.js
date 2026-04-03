@@ -1,4 +1,4 @@
-// server.js
+// backend/server.js
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -7,7 +7,8 @@ import http from "http";
 import { Server } from "socket.io";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { startSubscriptionScheduler, runInitialCheck } from "./utils/subscriptionScheduler.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.js";
 import listingRoutes from "./routes/listing.js";
@@ -16,18 +17,45 @@ import uploadRoutes from "./routes/upload.js";
 import publicSponsorsRoutes from "./routes/publicSponsors.js";
 import adminRoutes from "./routes/admin.js";
 import adminAuthRoutes from "./routes/adminAuth.js";
+import userRoutes from "./routes/user.js";
 import planRoutes from "./routes/plan.js";
 import subscriptionRoutes from "./routes/subscription.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-// Configure Socket.IO with CORS
+// Allowed origins for CORS
+const allowedOrigins = [
+  'https://soukphone.vercel.app',
+  'https://soukphonetn.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+// Configure CORS
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Origin not allowed:', origin);
+      callback(null, true);
+    }
+  },
+  credentials: true
+}));
+
+app.use(express.json());
+app.use(helmet());
+
+// Socket.IO configuration
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -38,12 +66,14 @@ const io = new Server(server, {
 
 app.set('io', io);
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true
-}));
-app.use(express.json());
-app.use(helmet());
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
 
 // Test route
 app.get("/api/test", (req, res) => {
@@ -51,12 +81,7 @@ app.get("/api/test", (req, res) => {
 });
 
 // Rate limiting
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-  });
-} else {
+if (process.env.NODE_ENV === 'production') {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -71,17 +96,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/upload", uploadRoutes);
-
-// SECOND: Admin auth routes (login, setup - no auth needed)
-app.use("/api/admin/auth", adminAuthRoutes);  // This should be BEFORE adminRoutes
-
-// THIRD: Protected admin routes (require auth)
-app.use("/api/admin", adminRoutes);  // This comes after
-
+app.use("/api/users", userRoutes);
 app.use("/api/plans", planRoutes);
-
 app.use("/api/subscription", subscriptionRoutes);
-
+app.use("/api/admin/auth", adminAuthRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
@@ -127,16 +146,11 @@ app.use((req, res) => {
 // Database connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("✅ DB Connected")
+    console.log("✅ DB Connected");
     
-    // Start subscription scheduler
-    startSubscriptionScheduler();
-    runInitialCheck();;
-    
-    // Start server only after DB connection
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
-      console.log(`🔥 Server running on http://localhost:${PORT}`);
+      console.log(`🔥 Server running on port ${PORT}`);
       console.log(`🔌 Socket.IO server running on port ${PORT}`);
     });
   })
