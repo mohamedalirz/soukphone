@@ -7,8 +7,6 @@ import http from "http";
 import { Server } from "socket.io";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import authRoutes from "./routes/auth.js";
 import listingRoutes from "./routes/listing.js";
@@ -21,9 +19,6 @@ import userRoutes from "./routes/user.js";
 import planRoutes from "./routes/plan.js";
 import subscriptionRoutes from "./routes/subscription.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 dotenv.config();
 
 const app = express();
@@ -31,7 +26,9 @@ const server = http.createServer(app);
 
 // Allowed origins for CORS
 const allowedOrigins = [
-  'https://soukphone.vercel.app',
+  'http://localhost:3000',
+  'https://soukphonetn.vercel.app',
+  'https://soukphone-git-main.vercel.app',
   'https://soukphonetn.vercel.app',
   process.env.CLIENT_URL
 ].filter(Boolean);
@@ -66,7 +63,16 @@ const io = new Server(server, {
 
 app.set('io', io);
 
-// Health check endpoint
+// Health check endpoint (required for Render)
+app.get("/", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    message: "SoukPhone API is running",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.get("/api/health", (req, res) => {
   res.json({ 
     status: "ok", 
@@ -80,7 +86,7 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "Server is running!", timestamp: new Date().toISOString() });
 });
 
-// Rate limiting
+// Rate limiting (only in production)
 if (process.env.NODE_ENV === 'production') {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -144,11 +150,11 @@ app.use((req, res) => {
 });
 
 // Database connection
+const PORT = process.env.PORT || 5000;
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ DB Connected");
-    
-    const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
       console.log(`🔥 Server running on port ${PORT}`);
       console.log(`🔌 Socket.IO server running on port ${PORT}`);
