@@ -1,15 +1,12 @@
 // services/api.js
 import axios from "axios";
+import io from "socket.io-client";
 
-// Regular API instance (for users)
+// Use environment variable for API URL
+const API_URL = process.env.REACT_APP_API_URL || "https://soukphone-api.koyeb.app/api";
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
-  timeout: 10000,
-});
-
-// Admin API instance (for admin routes)
-const AdminAPI = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
+  baseURL: API_URL,
   timeout: 10000,
 });
 
@@ -30,13 +27,15 @@ API.interceptors.request.use(
   }
 );
 
-// Request interceptor for Admin API (admin token)
+// Admin API instance
+const AdminAPI = axios.create({
+  baseURL: API_URL,
+  timeout: 10000,
+});
+
 AdminAPI.interceptors.request.use(
   (config) => {
-    // Use admin token for admin routes
     let token = localStorage.getItem("adminToken") || localStorage.getItem("token");
-    
-    console.log("Admin API request:", config.url, "Token exists:", !!token);
     
     if (token && typeof token === 'string' && token !== '[object Object]') {
       config.headers.Authorization = `Bearer ${token}`;
@@ -50,28 +49,22 @@ AdminAPI.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling rate limiting
-API.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 429 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return API(originalRequest);
-    }
-    
-    return Promise.reject(error);
-  }
-);
+// Socket.IO connection
+export const initSocket = () => {
+  const socketUrl = process.env.REACT_APP_SOCKET_URL || "https://soukphone-api.koyeb.app";
+  return io(socketUrl, {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    withCredentials: true
+  });
+};
 
 // ============ AUTH FUNCTIONS ============
 export const registerUser = async (userData) => {
   try {
-    console.log("Sending registration request:", userData);
     const { data } = await API.post("/auth/register", userData);
-    console.log("Registration response:", data);
     return data;
   } catch (error) {
     console.error("Register API error:", error.response?.data || error.message);
@@ -81,9 +74,7 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   try {
-    console.log("Sending login request:", { email: credentials.email });
     const { data } = await API.post("/auth/login", credentials);
-    console.log("Login response:", data);
     return data;
   } catch (error) {
     console.error("Login API error:", error.response?.data || error.message);
@@ -138,7 +129,6 @@ export const getUserListings = async () => {
 
 export const addListing = async (listingData) => {
   try {
-    console.log("Sending listing data:", listingData);
     const { data } = await API.post("/listings", listingData);
     return data;
   } catch (error) {
@@ -163,11 +153,10 @@ export const uploadImage = async (file) => {
   formData.append("image", file);
 
   try {
-    const res = await axios.post("http://localhost:5000/api/upload", formData, {
+    const res = await axios.post(`${API_URL}/upload`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 30000
     });
-    console.log("Upload response:", res.data);
     return res.data;
   } catch (error) {
     console.error("Upload error:", error);
@@ -178,8 +167,7 @@ export const uploadImage = async (file) => {
 // ============ SPONSOR FUNCTIONS ============
 export const getAllSponsors = async () => {
   try {
-    const response = await axios.get("http://localhost:5000/api/sponsors");
-    console.log("Public sponsors response:", response.data);
+    const response = await axios.get(`${API_URL}/sponsors`);
     return response.data;
   } catch (error) {
     console.error("Get sponsors error:", error);
@@ -187,11 +175,10 @@ export const getAllSponsors = async () => {
   }
 };
 
-// ============ ADMIN FUNCTIONS (using AdminAPI) ============
+// ============ ADMIN FUNCTIONS ============
 export const adminLogin = async (credentials) => {
   try {
-    const { data } = await axios.post("http://localhost:5000/api/admin/auth/login", credentials);
-    console.log("Admin login response:", data);
+    const { data } = await axios.post(`${API_URL}/admin/auth/login`, credentials);
     return data;
   } catch (error) {
     console.error("Admin login error:", error.response?.data || error.message);
@@ -209,11 +196,6 @@ export const getAllUsers = async () => {
   return data;
 };
 
-export const updateUserRole = async (userId, userData) => {
-  const { data } = await AdminAPI.put(`/admin/users/${userId}/role`, userData);
-  return data;
-};
-
 export const deleteUser = async (userId) => {
   const { data } = await AdminAPI.delete(`/admin/users/${userId}`);
   return data;
@@ -221,11 +203,6 @@ export const deleteUser = async (userId) => {
 
 export const getAllListings = async () => {
   const { data } = await AdminAPI.get("/admin/listings");
-  return data;
-};
-
-export const updateListing = async (listingId, listingData) => {
-  const { data } = await AdminAPI.put(`/admin/listings/${listingId}`, listingData);
   return data;
 };
 
@@ -241,11 +218,6 @@ export const toggleListingFeatured = async (listingId) => {
 
 export const createSponsor = async (sponsorData) => {
   const { data } = await AdminAPI.post("/admin/sponsors", sponsorData);
-  return data;
-};
-
-export const updateSponsor = async (sponsorId, sponsorData) => {
-  const { data } = await AdminAPI.put(`/admin/sponsors/${sponsorId}`, sponsorData);
   return data;
 };
 
