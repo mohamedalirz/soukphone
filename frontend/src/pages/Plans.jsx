@@ -83,7 +83,7 @@ const Plans = () => {
 
   const checkPendingRequest = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/plans/requests/pending/${userId}`);
+      const response = await axios.get(`https://soukphone-api.onrender.com/api/plans/requests/pending/${userId}`);
       if (response.data.hasPending) {
         setHasPendingRequest(true);
       }
@@ -114,7 +114,7 @@ const Plans = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:5000/api/plans/request",
+        "https://soukphone-api.onrender.com/api/plans/request",
         {
           requestedPlan: selectedPlan,
           duration: duration,
