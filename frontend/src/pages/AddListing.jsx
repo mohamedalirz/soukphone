@@ -4,6 +4,9 @@ import { addListing, uploadImage, getUserListings } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+// Get API URL from environment or use production URL
+const API_URL = process.env.REACT_APP_API_URL || "https://soukphone-api.onrender.com/api";
+
 const AddListing = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -37,8 +40,8 @@ const AddListing = () => {
           return;
         }
 
-        // Get user profile
-        const userResponse = await axios.get("http://localhost:5000/api/auth/profile", {
+        // Get user profile - use API_URL
+        const userResponse = await axios.get(`${API_URL}/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -60,11 +63,12 @@ const AddListing = () => {
         if (error.response?.status === 401) {
           navigate("/auth");
         }
+        setLoadingLimit(false);
       }
     };
     
     fetchUserData();
-  }, [navigate, planLimits]);
+  }, [navigate]);
 
   // Handle file selection
   const handleFiles = (files) => {
