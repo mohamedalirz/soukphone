@@ -17,7 +17,7 @@ const TrustedUsersCarousel = () => {
 
   const fetchTrustedUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/auth/badge/verified");
+      const response = await axios.get("https://soukphone-api.onrender.com/api/auth/badge/verified");
       if (response.data.success) {
         setUsers(response.data.users);
       }
