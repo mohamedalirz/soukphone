@@ -1,6 +1,6 @@
 // components/TrustedUsersCarousel.jsx
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, MessageCircle , Shield, Store} from "lucide-react";
+import { ChevronLeft, ChevronRight, Shield, Store } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import UserBadge from "./UserBadge";
