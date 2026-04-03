@@ -3,7 +3,7 @@ import axios from "axios";
 import io from "socket.io-client";
 
 // Use environment variable for API URL
-const API_URL = process.env.REACT_APP_API_URL || "https://soukphone-api.koyeb.app/api";
+const API_URL = process.env.REACT_APP_API_URL || "https://soukphone-api.onrender.com/api";
 
 const API = axios.create({
   baseURL: API_URL,
