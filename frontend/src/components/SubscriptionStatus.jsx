@@ -20,7 +20,7 @@ const SubscriptionStatus = () => {
   const fetchSubscriptionStatus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/api/subscription/status", {
+      const response = await axios.get("https://soukphone-api.onrender.com/api/subscription/status", {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log("Subscription response:", response.data);
