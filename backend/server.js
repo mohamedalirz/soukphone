@@ -30,7 +30,8 @@ const allowedOrigins = [
   'https://soukphone.vercel.app',
   'https://soukphone-git-main.vercel.app',
   'https://soukphone.vercel.app',
-  'https://soukphone-api.onrender.com'
+  'https://soukphone-api.onrender.com',
+  'https://soukphone-rdt2k67ol-dalis-projects-6f904fe4.vercel.app'
 ];
 
 // Configure CORS
