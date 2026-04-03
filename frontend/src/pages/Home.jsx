@@ -21,12 +21,6 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    mins: 0,
-    secs: 0
-  });
   const [visibleCount, setVisibleCount] = useState(4);
   
   const fetchedRef = useRef(false);
@@ -114,30 +108,6 @@ const fetchSponsors = useCallback(async () => {
     fetchSponsors();
   }, [fetchListings, fetchSponsors]);
 
-  // Countdown timer for hot deals
-  useEffect(() => {
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 3);
-    targetDate.setHours(23, 59, 59, 999);
-
-    const updateTimer = () => {
-      const now = new Date();
-      const difference = targetDate - now;
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          mins: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          secs: Math.floor((difference % (1000 * 60)) / 1000)
-        });
-      }
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Filter listings based on search
   const filteredListings = listings.filter(listing =>
