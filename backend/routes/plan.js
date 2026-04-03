@@ -8,7 +8,7 @@ import {
   approvePlanRequest,
   declinePlanRequest,
   getAllPlanRequests
-} from "../controllers/PlanController.js";
+} from "../controllers/planController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
