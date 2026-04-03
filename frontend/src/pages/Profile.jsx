@@ -37,7 +37,7 @@ const Profile = () => {
     
     const isValid = cleanupToken();
     if (!isValid) {
-      navigate("/auth");
+      navigate("/login");
       return;
     }
     
@@ -50,7 +50,7 @@ const Profile = () => {
     
     if (!token) {
       console.log("No token found, redirecting to auth");
-      navigate("/auth");
+      navigate("/login");
       return;
     }
     
@@ -87,7 +87,7 @@ const Profile = () => {
         console.log("Unauthorized - clearing token and redirecting");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/auth");
+        navigate("/login");
       } else {
         setError(err.response?.data?.msg || "Failed to load profile data");
       }
