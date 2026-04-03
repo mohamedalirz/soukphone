@@ -15,7 +15,6 @@ import uploadRoutes from "./routes/upload.js";
 import publicSponsorsRoutes from "./routes/publicSponsors.js";
 import adminRoutes from "./routes/admin.js";
 import adminAuthRoutes from "./routes/adminAuth.js";
-import userRoutes from "./routes/user.js";
 import planRoutes from "./routes/plan.js";
 import subscriptionRoutes from "./routes/subscription.js";
 
